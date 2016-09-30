@@ -20,6 +20,9 @@ public:
     void setName(string x){
         name=x;
     }
+    string getname(){
+        return name;
+    }
     int gettime(){
         return time;
     }
@@ -53,7 +56,9 @@ public:
         
         activities[j].setName(name);
     }
-    
+    string getName(int j){
+        return          activities[j].getname();
+    }
     void printActivityTime(){
         int len=getSize();
         cout<<p_No<<" length: "<<len<<endl;
@@ -64,81 +69,29 @@ public:
     }
     
     
+    
 };
 
 
 class Log{
-private:
     int pnum;
+    int anum;
     int time;
-    string activName;
 public:
-    void setLog(int pNum, int t){
+    void setLog(int pNum, int t, int aNum ){
         pnum=pNum;
         time=t;
-        
+        anum=aNum;
     }
     int getT(){
         return time;}
+    int getP(){
+        return pnum;}
+    int getA(){
+        return anum;}
     
-    void printActivName(){
-        cout<<activName;
-    }
 };
 
-
-
-void orderAllActivity(vector<Process>& processes)
-{
-    vector<Log> log;
-    //load log
-    int len=processes.size();
-    for( int i=0;i<len;i++ )
-    {
-        for(int j=i;j<processes[0].getSize();j++)
-        {
-            if( processes[i].getTime(j)!= 0)
-            {
-                Log l;
-                l.setLog(processes[i].p_No, processes[i].getTime(j) );
-                log.push_back(l);
-            }
-            else
-            {
-                processes[i].setName(j,"null");
-            }
-        }
-    }
-    
-    for(int i=0; i<log.size();i++)
-    {   cout<<"befor";
-        cout<<log[i].getT()<<"  ";
-    }
-    
-    //order it and verify
-    int seq=1;
-    for(int i=0; i<log.size();i++)
-    {
-        for(int j=i; j<log.size();j++)
-        {    if (log[i].getT()>log[j].getT())
-        {
-            Log tem=log[i];
-            
-            log[i]=log[j];
-            log[j]=tem;
-        }
-        }
-    }
-    for(int i=0; i<log.size();i++)
-    {   cout<<"after";
-        cout<<log[i].getT()<<endl;
-    }
-    
-    
-    
-    
-}
-//indepent name queue
 queue<string> abc;
 //send recieve
 queue<string> sendRec;
@@ -146,9 +99,8 @@ queue<string> sendRec;
 void initNameQueue(int num)
 {
     for(int i=0;i<num; i++)
-    {
-        string c;
-        c=97+num;
+    {  string c;
+        c=97+i;
         abc.push(c);
     }
     sendRec.push("s1");
@@ -168,7 +120,103 @@ void initNameQueue(int num)
 }
 
 
-void  findDependence(){}
+
+void orderAllActivity(vector<Process>& processes)
+{   vector<Log> log;
+    //load log
+    int len=processes.size();
+    for( int i=0;i<len;i++ )
+    {
+        for(int j=0;j<processes[i].getSize();j++)
+        {
+            if( processes[i].getTime(j)!= 0)
+            {
+                Log l;
+                l.setLog(processes[i].p_No, processes[i].getTime(j),j );
+                log.push_back(l);
+            }
+            else
+            {
+                processes[i].setName(j,"null");
+            }
+        }
+    }
+    
+    //order it and verify
+    int seq=1;
+    for(int i=0; i<log.size();i++)
+    {
+        for(int j=i; j<log.size();j++)
+        {    if (log[i].getT()>log[j].getT())
+        {
+            Log tem=log[i];
+            
+            log[i]=log[j];
+            log[j]=tem;
+        }
+        }
+    }
+    
+    
+    //valid
+    for(int i=0; i<log.size();i++)
+    {  if(log[i].getT()<=seq)
+    {   if(log[i].getT()==seq)
+    {seq+=1;
+    }
+    }
+    else{cout<<"incorect";
+        exit(0);
+    }
+        
+    }
+    int deptag=1;
+    
+    for(int i=0; i<log.size();i++)
+    {   cout<<"after valid";
+        cout<<log[i].getT()<<"   "<<log[i].getP()<<endl;
+        int p=log[i].getP();
+        int a=log[i].getA();
+        cout<<p<<"  "<<a;
+        if(log[i].getT()==1)
+        {
+            processes[p].setName(a , abc.front());
+            cout<<"seting name"<<processes[p].getName(a)<<"  ";
+        }
+        else{
+            for (int j=i-1; j>0 && log[j].getT()+1==log[i].getT();j--)
+            {
+                if(log[j].getP()==p)
+                {   abc.pop();
+                    processes[p].setName(a, abc.front());
+                    int tag=0;
+                    break;
+                }
+            }
+            if(deptag==1)
+            {
+                for(int j=i-1;j>0 && log[j].getT()+1==log[i].getT();j--)
+                {   int pp=log[j].getP();
+                    int aa=log[j].getA();
+                    processes[pp].setName(aa, sendRec.front());
+                    sendRec.pop();
+                    processes[p].setName(a, sendRec.front());
+                    sendRec.pop();
+                    
+                }
+            }
+        }
+    }
+    
+}
+
+
+
+
+
+
+
+
 
 int main(){
     
@@ -176,6 +224,7 @@ int main(){
     vector<Process> processes;
     
     Process p1;
+    
     p1.pushActivity("1 2 8 9");
     p1.p_No=1;
     p1.printActivityTime();
@@ -191,18 +240,22 @@ int main(){
     Process p3;
     p3.pushActivity("3 4 5 6");
     p3.p_No=3;
+    p3.printActivityTime();
     processes.push_back(p3);
     
-    
-    cout<<"init NameQueue starting"<<endl;
-    initNameQueue(processes.size()* processes[0].getSize());
-    
-    
+    initNameQueue(20);
     
     orderAllActivity(processes);
     
+    for(int i=0;i< processes.size();i++)
+    {   cout<<"P"<<i<<": ";
+        for(int j=0; j<processes[0].getSize(); j++)
+        {cout<<processes[i].getName(j)<<"  ";
+        }
+        cout<<endl;
+    }
     
-    findDependence();
+    
     
     
 }
