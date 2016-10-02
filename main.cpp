@@ -23,15 +23,15 @@
 using namespace std;
 
 class Activity{
-
-    string aname;
+    private:
+    string name;
     int time;
-public:
+    public:
     void setname(string n){
-        aname=n;
+        name=n;
     }
     string getname(){
-        return aname;
+        return name;
     }
     int gettime(){
         return time;
@@ -43,11 +43,12 @@ public:
 };
 
 
+
 class Process{
-public:
+    private:
     vector<Activity> activities;
     int p_No;
-    
+    public:
     void pushActivity(string s){
         istringstream iss(s);
         while (iss){
@@ -59,6 +60,12 @@ public:
                 activities.push_back(n);
             }
         }
+    }
+    void setPno(int i){
+        p_No=i;
+    }
+    int getPno(){
+    return p_No;
     }
     int getSize(){
         return (int)activities.size();
@@ -75,13 +82,19 @@ public:
     }
     void printActivityTime(){
         int len=getSize();
-        cout<<p_No<<" length: "<<len<<endl;
         for(int i=0;i<len;i++){
             cout<<activities[i].gettime()<<"  ";
         }
         cout<<endl;
     }
+    void printAName()
+    { for(int i=0; i<getSize();i++)
+         {
+            cout<<getName(i)<<"   ";
+         }
+        cout<<endl;
     
+    }
     
     
 };
@@ -97,7 +110,7 @@ public:
         pnum=pNum;
         time=t;
         anum=aNum;
-        dtag=1;
+        dtag=-1;   //default
     }
     void setDtag(int d){
         dtag=d;
@@ -138,6 +151,16 @@ void initNameQueue(int num)
     sendRec.push("r6");
     sendRec.push("s7");
     sendRec.push("r7");
+    sendRec.push("s8");
+    sendRec.push("r8");
+    sendRec.push("s9");
+    sendRec.push("r9");
+    sendRec.push("s10");
+    sendRec.push("r10");
+    sendRec.push("s11");
+    sendRec.push("r11");
+    sendRec.push("s12");
+    sendRec.push("r12");
 }
 
 
@@ -153,18 +176,18 @@ void orderAllActivity(vector<Process> processes)
             if( processes[i].getTime(j)!= 0)
             {
                 Log l;
-                l.setLog(processes[i].p_No, processes[i].getTime(j),j );
+                l.setLog(processes[i].getPno(), processes[i].getTime(j),j );
                 log.push_back(l);
             }
             else
             {
                 processes[i].setName(j,"null");
-                cout<<i<<"  "<<processes[i].getName(j);
+
             }
         }
     }
     
-    //order it and verify
+    //order it
     int seq=1;
     for(int i=0; i<log.size();i++)
     {
@@ -176,62 +199,90 @@ void orderAllActivity(vector<Process> processes)
                         log[j]=tem;
                     }
             }
-    }
-    
-    
-    //valid
-    for(int i=0; i<log.size();i++)
-    {  if(log[i].getT()<=seq)
+        if(log[i].getT()<=seq)
         {   if(log[i].getT()==seq)
-            {seq+=1;
-            }
+        {seq+=1;
+        }
         }
         else{cout<<"incorect";
             exit(0);
-            }
-        
-    }
-    
-    for(int i=0; i<log.size();i++)
-    {   //cout<<"after valid";
-        //cout<<log[i].getT()<<"   "<<log[i].getP()<<endl;
-        int p=log[i].getP();
-        int a=log[i].getA();
-        if(log[i].getT()==1)
-        {
-            log[i].setDtag(0);
         }
-        else{
-            for (int j=i-1; j>0 && log[j].getT()+1==log[i].getT();j--)
+
+    }
+   
+    int p;
+    for(int i=0; i<log.size();i++)
+    {
+            p=log[i].getP();
+            if(log[i].getT()==1)
             {
-                if(log[j].getP()==p)
-                {
-                    log[i].setDtag(0);
-                    break;
+                log[i].setDtag(0);
+                continue;
+            }
+            for (int j=0; j<i;j++)
+            {   if(log[j].getP()==p)
+                {   if(log[j].getT()==log[i].getT())
+                    {
+                        cout<<"incorrect"<<endl;
+                        exit(0);
+                    }
+                    if( log[j].getT()+1==log[i].getT())
+                    {
+                        log[i].setDtag(0);
+                        break;
+                    }
                 }
             }
-        }
-        cout<<log[i].getD()<<endl;
-    
+            if(log[i].getD()==-1)
+                {  for(int j=i-1; j>0;j--)
+                    {   if(log[j].getT()+1==log[i].getT())
+                            {   if(log[j].getD()==0)
+                                  {
+                                   log[j].setDtag(1);
+                                   log[i].setDtag(1);
+                                   break;
+                                   }
+                            }
+                    }
+                    if(log[i].getD()==-1)
+                    {cout<<"incorrect"<<endl;
+                     exit(0);
+                    }
+                }
     }
     
+    
+    
+    int a;
+    
     for(int i=0; i<log.size();i++)
-        {
-            int p=log[i].getP();
-            int a=log[i].getA();
-            cout<<"P"<<p<<"A"<<a;
+    {   p=log[i].getP();
+        a=log[i].getA();
             if(log[i].getD()==0)
             {   string ab=abc.front();
-                processes[p].setName(a, ab);
+                processes[p-1].setName(a, ab);
                 abc.pop();
             }
             else{
-             string sr=sendRec.front();
-             processes[p].setName(a, sr);
-             sendRec.pop();
+                string sr=sendRec.front();
+                processes[p-1].setName(a, sr);
+                sendRec.pop();
             }
         }
+
+    for(int i=0; i<processes.size();i++)
+    {
+        processes[i].printAName();
+        
+    }
     
+    
+    
+    
+    
+    
+
+
 }
 
 
@@ -252,31 +303,22 @@ int main(){
     Process p1;
     
     p1.pushActivity("1 2 8 9");
-    p1.p_No=1;
-    p1.printActivityTime();
+    p1.setPno(1);
     processes.push_back(p1);
     
     
     Process p2;
     p2.pushActivity("1 6 7 0");
-    p2.p_No=2;
-    p2.printActivityTime();
+    p2.setPno(2);
     processes.push_back(p2);
     
     Process p3;
     p3.pushActivity("3 4 5 6");
-    p3.p_No=3;
-    p3.printActivityTime();
+    p3.setPno(3);
     processes.push_back(p3);
     
 
     initNameQueue(20);
     
     orderAllActivity(processes);
-    
-    
-   
-    
-    
-    
 }
