@@ -15,6 +15,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <queue>
 #include <vector>
 #include <sstream>
@@ -168,7 +169,7 @@ void initNameQueue(int num)
 void orderAllActivity(vector<Process> processes)
 {   vector<Log> log;
     //load log
-    int len=processes.size();
+    int len=(int)processes.size();
     for( int i=0;i<len;i++ )
     {
         for(int j=0;j<processes[i].getSize();j++)
@@ -295,29 +296,26 @@ void orderAllActivity(vector<Process> processes)
 
 
 
-int main(){
+int main(int argc, char*argv[]){
     
     
     vector<Process> processes;
     
-    Process p1;
     
-    p1.pushActivity("1 2 8 9");
-    p1.setPno(1);
-    processes.push_back(p1);
+   // ifstream in(*argv);
+    ifstream in(argv[0]);
+    string temp;
+    string str;
+    int count=1;
+    while(getline(in,temp))
+    {
+        Process px;
+        px.pushActivity(temp);
+        px.setPno(count);
+        processes.push_back(px);
+        count++;
+    }
     
-    
-    Process p2;
-    p2.pushActivity("1 6 7 0");
-    p2.setPno(2);
-    processes.push_back(p2);
-    
-    Process p3;
-    p3.pushActivity("3 4 5 6");
-    p3.setPno(3);
-    processes.push_back(p3);
-    
-
     initNameQueue(20);
     
     orderAllActivity(processes);
